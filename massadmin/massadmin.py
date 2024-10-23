@@ -31,7 +31,7 @@ import hashlib
 import types
 import sys
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied, ValidationError
 try:
     from django.urls import reverse
