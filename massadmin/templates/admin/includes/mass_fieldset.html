@@ -59,7 +59,9 @@
                   {{ field.field }}
                 </div>
               {% endif %}
-              {% if field.field.field.help_text %}<p class="help">{{ field.field.field.help_text|safe }}</p>{% endif %}
+              {% if field.field.field.help_text %}
+                <p class="help text-help">&nbsp;{{ field.field.field.help_text|safe }}</p>
+              {% endif %}
             </td>
           {% endif %}{% endif %}
         </tr>
