@@ -315,7 +315,9 @@ class MassAdmin(admin.ModelAdmin):
                                 changed_count += 1
 
                             except DatabaseError as err:
-                                forms_errors.append({new_object: err})
+                                msg = f'<p>Cannot add {new_object}: {err.message}</p>'
+                                messages.add_message(
+                                    request, messages.ERROR, mark_safe(msg))
 
                     if changed_count == objects_count:
                         return self.response_change(request, new_object)
