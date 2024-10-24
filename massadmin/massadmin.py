@@ -64,6 +64,12 @@ from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
 from . import settings
 
 
+def url_to_edit_object(obj):
+    url = reverse('admin:%s_%s_change' % (
+        obj._meta.app_label, obj._meta.model_name), args=[obj.id])
+    return '<a href="%s" target="_">%s</a>' % (url,  obj.__unicode__())
+
+
 def mass_change_selected(modeladmin, request, queryset):
     selected = queryset.values_list('pk', flat=True)
 
@@ -319,14 +325,15 @@ class MassAdmin(admin.ModelAdmin):
                                     changed_count += 1
 
                                 except IntegrityError:
-                                    msg = f'<p>Cannot add {str(new_object)}: '\
-                                        'it already exists in the datebase</p>'
+                                    obj_url = url_to_edit_object(obj)
+                                    msg = f'<p>Cannot modify {obj_url}: '\
+                                        'a record already exists in the database</p>'
                                     messages.add_message(
                                         request, messages.ERROR, mark_safe(msg))
 
                                 except DatabaseError as err:
                                     detail = str(err.__cause__ or '')
-                                    msg = f'<p>Cannot add {new_object}: {detail}</p>'
+                                    msg = f'<p>Cannot modify {new_object}: {detail}</p>'
                                     messages.add_message(
                                         request, messages.ERROR, mark_safe(msg))
 
@@ -336,7 +343,7 @@ class MassAdmin(admin.ModelAdmin):
                         errors = form.errors
                         errors_list = helpers.AdminErrorList(form, formsets)
                         # Create consolidated feedback on errors
-                        msg = _('%s out of %s edits have errors!' %
+                        msg = _('%s out of %s records cannot be successfully edited' %
                             (objects_count - changed_count, objects_count))
                         messages.add_message(request, messages.ERROR, msg)
                         for err in forms_errors:
@@ -344,7 +351,7 @@ class MassAdmin(admin.ModelAdmin):
                                 f'{list(err.values())[0]}</p>'.replace('__all__', 'General')
                             messages.add_message(request, messages.ERROR, mark_safe(msg))
                         # Raise error for rollback transaction in atomic block
-                        raise ValidationError("Not all forms' data are correct")
+                        raise ValidationError("The mass edit could not be executed!")
 
             except Exception:
                 general_error = sys.exc_info()[1]
