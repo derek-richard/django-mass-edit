@@ -304,18 +304,18 @@ class MassAdmin(admin.ModelAdmin):
                                         form,
                                         formset,
                                         change=True)
+                                change_message = self.construct_change_message(
+                                    request,
+                                    form,
+                                    formsets)
+                                self.log_change(
+                                    request,
+                                    new_object,
+                                    change_message)
+                                changed_count += 1
+
                             except DatabaseError as err:
                                 forms_errors.append({new_object: err})
-
-                            change_message = self.construct_change_message(
-                                request,
-                                form,
-                                formsets)
-                            self.log_change(
-                                request,
-                                new_object,
-                                change_message)
-                            changed_count += 1
 
                     if changed_count == objects_count:
                         return self.response_change(request, new_object)
