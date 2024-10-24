@@ -37,7 +37,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.db import transaction, DatabaseError
+from django.db import transaction, DatabaseError, IntegrityError
 try:  # Django>=1.9
     from django.apps import apps
     get_model = apps.get_model
@@ -313,6 +313,12 @@ class MassAdmin(admin.ModelAdmin):
                                     new_object,
                                     change_message)
                                 changed_count += 1
+
+                            except IntegrityError:
+                                msg = f'<p>Cannot add {str(new_object)}: '\
+                                    'it already exists in the datebase</p>'
+                                messages.add_message(
+                                    request, messages.ERROR, mark_safe(msg))
 
                             except DatabaseError as err:
                                 detail = str(err.__cause__ or '')
