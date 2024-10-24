@@ -37,7 +37,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.db import transaction
+from django.db import transaction, DatabaseError
 try:  # Django>=1.9
     from django.apps import apps
     get_model = apps.get_model
@@ -291,18 +291,21 @@ class MassAdmin(admin.ModelAdmin):
 
                         if all_valid(formsets) and form_validated:
                             # self.admin_obj.save_model(request, new_object, form, change=True)
-                            self.save_model(
-                                request,
-                                new_object,
-                                form,
-                                change=True)
-                            form.save_m2m()
-                            for formset in formsets:
-                                self.save_formset(
+                            try:
+                                self.save_model(
                                     request,
+                                    new_object,
                                     form,
-                                    formset,
                                     change=True)
+                                form.save_m2m()
+                                for formset in formsets:
+                                    self.save_formset(
+                                        request,
+                                        form,
+                                        formset,
+                                        change=True)
+                            except DatabaseError as err:
+                                forms_errors.append({new_object: err.message})
 
                             change_message = self.construct_change_message(
                                 request,
