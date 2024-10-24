@@ -298,8 +298,8 @@ class MassAdmin(admin.ModelAdmin):
 
                         if all_valid(formsets) and form_validated:
                             # self.admin_obj.save_model(request, new_object, form, change=True)
-                            #  second atomic to prevent :
-                            # " You can't execute queries ..." error
+                            #  second transaction.atomic added to avoid:
+                            #  "You can't execute queries ..." error
                             with transaction.atomic():
 
                                 try:
@@ -327,8 +327,11 @@ class MassAdmin(admin.ModelAdmin):
 
                                 except IntegrityError:
                                     obj_url = url_to_edit_object(obj)
-                                    msg = f'<p>Cannot modify {obj_url}: '\
-                                        'a record already exists in the database</p>'
+                                    hint = '(Either run the mass edit without'\
+                                        ' this; or remove the existing record)'
+                                    msg = f'<p>Cannot modify {obj_url}: a '\
+                                        'record already exists in the database'\
+                                        f' {hint}</p>'
                                     messages.add_message(
                                         request, messages.ERROR, mark_safe(msg))
 
