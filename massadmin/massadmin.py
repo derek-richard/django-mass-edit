@@ -291,40 +291,44 @@ class MassAdmin(admin.ModelAdmin):
 
                         if all_valid(formsets) and form_validated:
                             # self.admin_obj.save_model(request, new_object, form, change=True)
-                            try:
-                                self.save_model(
-                                    request,
-                                    new_object,
-                                    form,
-                                    change=True)
-                                form.save_m2m()
-                                for formset in formsets:
-                                    self.save_formset(
+                            #  second atomic to prevent :
+                            # " You can't execute queries ..." error
+                            with transaction.atomic():
+
+                                try:
+                                    self.save_model(
+                                        request,
+                                        new_object,
+                                        form,
+                                        change=True)
+                                    form.save_m2m()
+                                    for formset in formsets:
+                                        self.save_formset(
+                                            request,
+                                            form,
+                                            formset,
+                                            change=True)
+                                    change_message = self.construct_change_message(
                                         request,
                                         form,
-                                        formset,
-                                        change=True)
-                                change_message = self.construct_change_message(
-                                    request,
-                                    form,
-                                    formsets)
-                                self.log_change(
-                                    request,
-                                    new_object,
-                                    change_message)
-                                changed_count += 1
+                                        formsets)
+                                    self.log_change(
+                                        request,
+                                        new_object,
+                                        change_message)
+                                    changed_count += 1
 
-                            except IntegrityError:
-                                msg = f'<p>Cannot add {str(new_object)}: '\
-                                    'it already exists in the datebase</p>'
-                                messages.add_message(
-                                    request, messages.ERROR, mark_safe(msg))
+                                except IntegrityError:
+                                    msg = f'<p>Cannot add {str(new_object)}: '\
+                                        'it already exists in the datebase</p>'
+                                    messages.add_message(
+                                        request, messages.ERROR, mark_safe(msg))
 
-                            except DatabaseError as err:
-                                detail = str(err.__cause__ or '')
-                                msg = f'<p>Cannot add {new_object}: {detail}</p>'
-                                messages.add_message(
-                                    request, messages.ERROR, mark_safe(msg))
+                                except DatabaseError as err:
+                                    detail = str(err.__cause__ or '')
+                                    msg = f'<p>Cannot add {new_object}: {detail}</p>'
+                                    messages.add_message(
+                                        request, messages.ERROR, mark_safe(msg))
 
                     if changed_count == objects_count:
                         return self.response_change(request, new_object)
