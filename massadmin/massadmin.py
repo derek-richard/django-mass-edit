@@ -315,7 +315,8 @@ class MassAdmin(admin.ModelAdmin):
                                 changed_count += 1
 
                             except DatabaseError as err:
-                                msg = f'<p>Cannot add {new_object}: {err.message}</p>'
+                                detail = str(err.__cause__ or '')
+                                msg = f'<p>Cannot add {new_object}: {detail}</p>'
                                 messages.add_message(
                                     request, messages.ERROR, mark_safe(msg))
 
