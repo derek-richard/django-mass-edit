@@ -68,7 +68,7 @@ def url_to_edit_object(obj):
     url = reverse('admin:%s_%s_change' % (
         obj._meta.app_label, obj._meta.model_name), args=[obj.pk])
     return '<a href="%s" target="_">%s #%s</a>' % (
-        url, obj._meta.model_name, obj.pk)
+        url, obj._meta.verbose_name, obj.pk)
 
 
 def mass_change_selected(modeladmin, request, queryset):
