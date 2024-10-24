@@ -305,7 +305,7 @@ class MassAdmin(admin.ModelAdmin):
                                         formset,
                                         change=True)
                             except DatabaseError as err:
-                                forms_errors.append({new_object: err.message})
+                                forms_errors.append({new_object: err})
 
                             change_message = self.construct_change_message(
                                 request,
