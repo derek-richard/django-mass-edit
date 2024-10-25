@@ -336,12 +336,25 @@ class MassAdmin(admin.ModelAdmin):
                                         request, messages.ERROR, mark_safe(msg))
 
                                 except DatabaseError as err:
-                                    detail = str(err.__cause__ or '')
-                                    msg = f'<p>Cannot modify {new_object}: {detail}</p>'
+                                    detail = str(err.__cause__ or str(err) or '')
+                                    obj_url = url_to_edit_object(obj)
+                                    hint = 'Please attempt a manual change.'
+                                    msg = f'<p>Cannot modify {obj_url}: {detail} {hint}</p>'
+                                    messages.add_message(
+                                        request, messages.ERROR, mark_safe(msg))
+
+                                except Exception as err:
+                                    detail = str(err.__cause__ or str(err) or '')
+                                    obj_url = url_to_edit_object(obj)
+                                    hint = 'Please attempt a manual change.'
+                                    msg = f'<p>Cannot modify {obj_url}: {detail} {hint}</p>'
                                     messages.add_message(
                                         request, messages.ERROR, mark_safe(msg))
 
                     if changed_count == objects_count:
+                        msg = _('%s out of %s records were successfully edited.' %
+                            (changed_count, objects_count))
+                        messages.add_message(request, messages.INFO, msg)
                         return self.response_change(request, new_object)
                     else:
                         errors = form.errors
